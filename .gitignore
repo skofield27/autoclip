@@ -1,0 +1,7 @@
+node_modules/
+bin/
+tmp/*
+clips/*
+!tmp/.gitkeep
+!clips/.gitkeep
+.env

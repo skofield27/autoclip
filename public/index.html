@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AUTOCLIP — potong video dari link mana aja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="rec-dot" id="brandDot"></span>
+    <span class="brand-name">AUTOCLIP</span>
+  </div>
+  <div class="brand-meta">MODEL&nbsp;AC-1&nbsp;· MULTI-SOURCE&nbsp;INPUT</div>
+</header>
+
+<main class="stage">
+
+  <section class="viewfinder" id="viewfinder">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="vf-label">SOURCE</div>
+
+    <div class="vf-body">
+      <div id="preview" class="preview hidden">
+        <img id="previewThumb" alt="" />
+        <div class="preview-info">
+          <div id="previewTitle" class="preview-title"></div>
+          <div id="previewMeta" class="preview-meta mono"></div>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <input id="urlInput" type="text" inputmode="url" autocomplete="off"
+          placeholder="Tempel link YouTube / TikTok / Instagram / apapun..." />
+        <button id="checkBtn" class="btn btn-ghost">CEK</button>
+      </div>
+      <div id="urlError" class="error-text hidden"></div>
+    </div>
+  </section>
+
+  <section class="dial-section hidden" id="modeSection">
+    <div class="dial" role="tablist" aria-label="Mode potong">
+      <button class="dial-opt" data-mode="ai" role="tab" aria-selected="true">
+        <span class="dial-num">01</span>
+        <span class="dial-label">AI HIGHLIGHT</span>
+        <span class="dial-sub">cari momen paling menarik otomatis</span>
+      </button>
+      <button class="dial-opt" data-mode="fixed" role="tab" aria-selected="false">
+        <span class="dial-num">02</span>
+        <span class="dial-label">FIXED SPLIT</span>
+        <span class="dial-sub">potong rata tiap X detik</span>
+      </button>
+      <button class="dial-opt" data-mode="manual" role="tab" aria-selected="false">
+        <span class="dial-num">03</span>
+        <span class="dial-label">MANUAL CUT</span>
+        <span class="dial-sub">lo yang nentuin timestamp-nya</span>
+      </button>
+    </div>
+
+    <div class="mode-panel">
+      <div class="mode-fields" id="fields-ai">
+        <label class="field">
+          <span>Jumlah klip</span>
+          <input type="number" id="aiNumClips" value="3" min="1" max="6" />
+        </label>
+        <label class="field">
+          <span>Durasi klip (detik)</span>
+          <div class="range-pair">
+            <input type="number" id="aiMinLen" value="15" min="5" max="120" /> <span class="dash">–</span>
+            <input type="number" id="aiMaxLen" value="60" min="5" max="180" />
+          </div>
+        </label>
+      </div>
+
+      <div class="mode-fields hidden" id="fields-fixed">
+        <label class="field">
+          <span>Panjang tiap klip (detik)</span>
+          <input type="number" id="fixedDuration" value="30" min="5" max="300" />
+        </label>
+      </div>
+
+      <div class="mode-fields hidden" id="fields-manual">
+        <div id="manualRows" class="manual-rows"></div>
+        <button type="button" id="addRowBtn" class="btn btn-ghost btn-sm">+ TAMBAH TIMESTAMP</button>
+      </div>
+
+      <label class="field field-toggle">
+        <input type="checkbox" id="verticalToggle" />
+        <span>Crop ke vertikal 9:16 (buat Reels/Shorts/TikTok)</span>
+      </label>
+    </div>
+
+    <button id="startBtn" class="btn btn-rec" disabled>
+      <span class="rec-dot small"></span> MULAI POTONG
+    </button>
+  </section>
+
+  <section class="osd hidden" id="osdSection">
+    <div class="osd-row">
+      <span class="rec-dot blink" id="osdDot"></span>
+      <span id="osdStatus" class="mono">STANDBY</span>
+      <span class="osd-spacer"></span>
+      <span id="osdTimer" class="mono">00:00</span>
+    </div>
+    <div class="osd-msg" id="osdMsg">—</div>
+  </section>
+
+  <section class="results hidden" id="resultsSection">
+    <h2 class="results-title">HASIL <span id="resultsCount" class="mono"></span></h2>
+    <div class="sheet" id="resultsGrid"></div>
+  </section>
+
+  <div id="errorBanner" class="error-banner hidden"></div>
+
+</main>
+
+<footer class="footer mono">
+  yt-dlp + ffmpeg di balik layar · AI highlight pakai Claude &amp; AssemblyAI
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
