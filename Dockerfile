@@ -8,10 +8,10 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install --omit=dev
-
+# Copy everything first — package.json's postinstall runs scripts/install-yt-dlp.js,
+# so that file needs to exist before `npm install` runs
 COPY . .
+RUN npm install --omit=dev
 
 RUN mkdir -p tmp clips
 
