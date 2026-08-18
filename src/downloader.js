@@ -51,6 +51,11 @@ function baseArgs() {
   if (COOKIES_FILE && fs.existsSync(COOKIES_FILE)) {
     args.push("--cookies", COOKIES_FILE);
   }
+  // YouTube's bot-check ("Sign in to confirm you're not a bot") hits
+  // datacenter IPs hard on the default web client. The android client
+  // currently gets waved through more often — this is a moving target as
+  // YouTube adjusts trust per-client, so revisit if it stops working.
+  args.push("--extractor-args", "youtube:player_client=android,web");
   // yt-dlp needs to shell out to ffmpeg for merging separate video+audio
   // streams and for post-processing. Point it at ffmpeg-static's bundled
   // binary rather than hoping ffmpeg is on PATH.
