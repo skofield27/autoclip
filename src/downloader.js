@@ -47,15 +47,10 @@ const BUNDLED_BIN = path.join(__dirname, "..", "bin", "yt-dlp");
 const YTDLP_BIN = fs.existsSync(BUNDLED_BIN) ? BUNDLED_BIN : "yt-dlp";
 
 function baseArgs() {
-  const args = ["--no-warnings", "--no-playlist", "--no-progress"];
+  const args = ["--no-warnings", "--no-playlist", "--no-progress", "--verbose"];
   if (COOKIES_FILE && fs.existsSync(COOKIES_FILE)) {
     args.push("--cookies", COOKIES_FILE);
   }
-  // YouTube's bot-check ("Sign in to confirm you're not a bot") hits
-  // datacenter IPs hard on the default web client. The android client
-  // currently gets waved through more often — this is a moving target as
-  // YouTube adjusts trust per-client, so revisit if it stops working.
-  args.push("--extractor-args", "youtube:player_client=android,web");
   // yt-dlp needs to shell out to ffmpeg for merging separate video+audio
   // streams and for post-processing. Point it at ffmpeg-static's bundled
   // binary rather than hoping ffmpeg is on PATH.
@@ -89,7 +84,16 @@ function run(args, { timeoutMs = 5 * 60 * 1000 } = {}) {
     child.on("close", (code) => {
       clearTimeout(timer);
       if (code === 0) resolve({ stdout, stderr });
-      else reject(new Error(`yt-dlp exited with code ${code}: ${stderr.slice(-2000)}`));
+      else {
+        // The most useful debug lines (yt-dlp version, whether cookies
+        // loaded, which player client was tried) are near the START of
+        // verbose output, with the final error at the END. Show both ends
+        // instead of just the tail, or we're debugging blind.
+        const head = stderr.slice(0, 1200);
+        const tail = stderr.slice(-1200);
+        const body = stderr.length > 2400 ? `${head}\n...[snip]...\n${tail}` : stderr;
+        reject(new Error(`yt-dlp exited with code ${code}:\n${body}`));
+      }
     });
   });
 }
