@@ -51,6 +51,13 @@ function baseArgs() {
   if (COOKIES_FILE && fs.existsSync(COOKIES_FILE)) {
     args.push("--cookies", COOKIES_FILE);
   }
+  // YouTube's `web` client now serves SABR-only streams that yt-dlp can't
+  // pull a direct URL from without a PO Token provider (a whole separate
+  // sidecar service). The `tv` client still falls through to a plain-HTTPS
+  // format (usually 360p) with no PO token needed — worse quality, but it
+  // actually downloads. `android` as second fallback. Revisit if these also
+  // get SABR-locked — this is a fast-moving target.
+  args.push("--extractor-args", "youtube:player_client=tv,android");
   // yt-dlp needs to shell out to ffmpeg for merging separate video+audio
   // streams and for post-processing. Point it at ffmpeg-static's bundled
   // binary rather than hoping ffmpeg is on PATH.
