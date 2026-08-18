@@ -4,19 +4,40 @@
 // intentionally platform-agnostic — we never branch on "which platform".
 //
 // Two things are NOT guaranteed to work out of the box:
-//  1. Private / login-gated content (IG private accounts, age-gated videos).
-//     Fix: set YTDLP_COOKIES_FILE to a Netscape-format cookies.txt and we'll
-//     pass it through automatically.
+//  1. YouTube increasingly blocks requests from cloud/datacenter IPs with
+//     "Sign in to confirm you're not a bot". Fix: provide cookies from a
+//     logged-in YouTube session — see YTDLP_COOKIES_CONTENT below. Also
+//     matters for private/age-gated content on any platform.
 //  2. TikTok/Instagram change their site frequently and can break yt-dlp's
 //     extractor for a few days until upstream ships a fix. If a download
-//     fails with a 4xx/extraction error, `yt-dlp -U` (update) is usually
-//     the fix — see the "yt-dlp-update" note in README.md.
+//     fails with a 4xx/extraction error, redeploy to pull the latest
+//     yt-dlp binary via scripts/install-yt-dlp.js.
 
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
-const COOKIES_FILE = process.env.YTDLP_COOKIES_FILE || null;
+// Two ways to supply cookies:
+//  - YTDLP_COOKIES_FILE: path to a cookies.txt already on disk (local dev)
+//  - YTDLP_COOKIES_CONTENT: the cookies.txt *contents* pasted directly into
+//    an env var (what you want on Railway/Render — never commit a real
+//    cookies.txt to a public repo, since it's basically a session token).
+//    We write it to a local tmp file once at startup and use that.
+function resolveCookiesFile() {
+  const direct = process.env.YTDLP_COOKIES_FILE;
+  if (direct && fs.existsSync(direct)) return direct;
+
+  const content = process.env.YTDLP_COOKIES_CONTENT;
+  if (content && content.trim()) {
+    const dest = path.join(__dirname, "..", "tmp", "cookies.txt");
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, content, { mode: 0o600 });
+    return dest;
+  }
+  return null;
+}
+
+const COOKIES_FILE = resolveCookiesFile();
 
 // Prefer the standalone binary fetched by scripts/install-yt-dlp.js at
 // `npm install` time (works with no system Python/Docker). Falls back to
